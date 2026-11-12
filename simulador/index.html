@@ -67,7 +67,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 <div class="wrap">
 <header>
-  <h1>ParkVaga – simulação do circuito montado<small>Ligue a fonte, carregue 6 e use “Entrar um carro” / “Sair um carro”. O carro passa pelo sensor, o contador muda e ele estaciona (ou sai) de uma vaga.</small></h1>
+  <h1>ParkVaga – simulação do circuito montado<small>Ligue a fonte e clique numa vaga vazia para um carro entrar, ou numa vaga ocupada para ele sair. O carro sempre passa pelo sensor de entrada ou de saída, e o display mostra as vagas livres.</small></h1>
   <div class="controls">
     <button id="pwr" class="power off" aria-pressed="false">Ligar fonte</button>
     <button id="load" disabled>LOAD' – carregar 6</button>
@@ -1713,7 +1713,8 @@ el('text',{x:150,y:290,'text-anchor':'middle','font-family':'JetBrains Mono','fo
 el('text',{x:490,y:290,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,fill:'#94a0ae'},Lt,'sensor SS');
 
 /* ---------- interação ---------- */
-function toggle(i){ if(st.busy)return; st.car[i]^=1; log(st.car[i]?`Carro estacionou na vaga ${i+1}: S${i+1}' = 0`:`Carro saiu da vaga ${i+1}: S${i+1}' = 1`); step(); }
+async function toggle(i){ if(st.busy||!st.power)return; st.busy=true; setBusy(true);
+  try{ if(st.car[i]) await carExit(i); else await carEnter(i); } finally{ st.busy=false; setBusy(false); } }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 async function pass(which){
   if(!st.power){log('A fonte está desligada.','bad');return;}
@@ -1732,19 +1733,19 @@ async function pass(which){
   if(enter&&s0.L) log('Estacionamento lotado: L = 1 deixa DOWN preso em 1, o contador não desce.','warn');
   if(!enter&&s0.QCQB) log('Display já em 6: QC·QB = 1 deixa UP preso em 1, o contador não sobe.','warn');
 }
-async function carEnter(){ const free=st.car.indexOf(0); const full=logic().L;
+async function carEnter(target){ const free=(target!=null&&!st.car[target])?target:st.car.indexOf(0); const full=logic().L;
   await pass('SE');
   if(full||free<0){ log('Não há vaga: o carro não estaciona.','bad'); return; }
   await sleep(300); st.car[free]=1; log(`Carro estacionou na vaga ${free+1}: S${free+1}' = 0`); step(); }
-async function carExit(){ const occ=st.car.lastIndexOf(1);
+async function carExit(target){ const occ=(target!=null&&st.car[target])?target:st.car.lastIndexOf(1);
   if(occ>=0){ st.car[occ]=0; log(`Carro saiu da vaga ${occ+1}: S${occ+1}' = 1`); step(); await sleep(400); }
   await pass('SS'); }
 $('enter').onclick=async()=>{ if(st.busy)return; st.busy=true; setBusy(true); try{await carEnter();}finally{st.busy=false;setBusy(false);} };
 $('exit').onclick=async()=>{ if(st.busy)return; st.busy=true; setBusy(true); try{await carExit();}finally{st.busy=false;setBusy(false);} };
-$('reset').onclick=()=>{st.car=[0,0,0,0,0,0];log('Todas as vagas livres.');step();};
+$('reset').onclick=async()=>{st.car=[0,0,0,0,0,0];log('Todas as vagas livres. Recarregando 6 pelo LOAD\'.');step();st.load=0;step();await sleep(300);st.load=1;step();};
 $('load').onclick=async()=>{st.load=0;step();await sleep(350);st.load=1;step();};
 $('pwr').onclick=()=>{st.power=!st.power;
-  if(st.power){st.Q=Math.floor(Math.random()*10);const s=logic();st.prevDown=s.DOWN;st.prevUp=s.UP;log(`Fonte ligada. O 74LS192 liga com um valor qualquer (${st.Q}). Use o LOAD' para carregar 6.`,'warn');}
+  if(st.power){st.car=[0,0,0,0,0,0];st.Q=6;const s=logic();st.prevDown=s.DOWN;st.prevUp=s.UP;log("Fonte ligada e LOAD' aplicado: estacionamento vazio, display em 6.",'ok');}
   else{log('Fonte desligada.');stopBeep();}
   step();};
 let muted=false;
