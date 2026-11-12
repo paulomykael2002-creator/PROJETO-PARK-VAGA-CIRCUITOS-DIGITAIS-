@@ -34,7 +34,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .card h2{font-family:var(--f-head);font-size:15px;margin:0 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
 .bench{overflow-x:auto}
 .bench svg{display:block;width:100%;min-width:560px;height:auto;border-radius:8px}
-.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:860px){.grid2{grid-template-columns:1fr}}
 .lot svg{width:100%;height:auto;display:block}
 .lotbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -1668,12 +1668,15 @@ function led(x,y,color){const g=el('g',{},g830);
   const body=el('circle',{cx:x,cy:y,r:8,fill:color==='g'?'#1f5a33':'#5a1f1f',stroke:'#00000055'},g);
   el('line',{x1:x-3,y1:y+8,x2:x-3,y2:y+20,stroke:'#999','stroke-width':1.5},g);el('line',{x1:x+3,y1:y+8,x2:x+3,y2:y+16,stroke:'#999','stroke-width':1.5},g);
   return {glow,body,color};}
-for(let i=0;i<6;i++){const x=180+i*44;
+for(let i=0;i<6;i++){const x=172+i*38;
   const r=led(x,70,'r'),gg=led(x,196,'g');leds.push({r,g:gg});
   el('text',{x,y:150,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':12,'font-weight':700,fill:'#555'},g830,labels[i]);}
-const ledHa=led(438,196,'g'),ledLot=led(438,70,'r');
-el('text',{x:438,y:46,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,'font-weight':700,fill:'#a33'},g830,'LOTADO');
-el('text',{x:438,y:236,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,'font-weight':700,fill:'#2a7a3a'},g830,'HÁ VAGA');
+el('rect',{x:404,y:30,width:70,height:222,rx:8,fill:'#ffffffaa',stroke:'#7a7f86','stroke-width':1.5,'stroke-dasharray':'5 4'},g830);
+el('text',{x:439,y:142,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':9,'font-weight':700,fill:'#555'},g830,'SINALIZAÇÃO');
+el('text',{x:288,y:24,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,'font-weight':700,fill:'#555'},g830,'LEDs DAS 6 VAGAS (vermelho = ocupada · verde = livre)');
+const ledHa=led(439,196,'g'),ledLot=led(439,70,'r');
+el('text',{x:439,y:48,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,'font-weight':700,fill:'#a33'},g830,'LOTADO');
+el('text',{x:439,y:240,'text-anchor':'middle','font-family':'JetBrains Mono','font-size':10,'font-weight':700,fill:'#2a7a3a'},g830,'HÁ VAGA');
 // buzzer
 const bz=el('g',{},g830);el('circle',{cx:300,cy:256,r:16,fill:'#151515'},bz);el('circle',{cx:300,cy:256,r:3,fill:'#555'},bz);
 const bzWave=el('path',{d:'M322,244 q8,12 0,24 M330,238 q12,18 0,36',fill:'none',stroke:'#ffb020','stroke-width':2.5,opacity:0},bz);
