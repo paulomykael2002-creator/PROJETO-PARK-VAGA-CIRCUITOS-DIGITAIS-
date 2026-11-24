@@ -1,0 +1,309 @@
+<title>Maquete ParkVaga</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho curto, cena 3D grande com painel de controle, depois medidas e materiais em duas colunas */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --fg:#1b2330; --muted:#5b6677; --line:#d5dbe3;
+  --accent:#e8772e; --ok:#1a9a3a; --bad:#d42020; --scene:#dfe5ec;
+  --display:'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --body:'Inter', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12161c;--surface:#1b2129;--fg:#e8edf3;--muted:#9aa6b6;--line:#2c3440;--accent:#f08a45;--ok:#3cc561;--bad:#ff5a4f;--scene:#1a2029;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161c;--surface:#1b2129;--fg:#e8edf3;--muted:#9aa6b6;--line:#2c3440;--accent:#f08a45;--ok:#3cc561;--bad:#ff5a4f;--scene:#1a2029;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px;display:grid;gap:18px}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);letter-spacing:.5px;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:22px;letter-spacing:.4px;margin:0 0 8px}
+.lead{color:var(--muted);margin:4px 0 0;max-width:70ch}
+.stage{position:relative;background:var(--scene);border:1px solid var(--line);border-radius:10px;overflow:hidden;height:min(62vh,600px);min-height:340px}
+#c{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+.chip{font:600 12px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+.chip.ok{color:var(--ok)}.chip.bad{color:var(--bad)}
+.msg{position:absolute;left:12px;bottom:12px;right:12px;font-size:13px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:520px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 14px var(--body);padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label.tg{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td.n{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px}li{margin:3px 0}
+.hint{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Maquete ParkVaga</h1>
+    <p class="lead">Estacionamento de 6 vagas em papelão, com o circuito escondido dentro da base. Gire com o mouse ou o dedo, faça carros entrarem e saírem e veja o painel mudar. Medidas em centímetros.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="c" aria-label="Modelo 3D da maquete do estacionamento"></canvas>
+    <div class="hud"><span class="chip" id="chipN">6 vagas livres</span><span class="chip ok" id="chipS">Há vaga</span></div>
+    <div class="msg" id="msg">Sistema ligado: estacionamento vazio, display em 6.</div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="bIn">Carro entra</button>
+    <button id="bOut">Carro sai</button>
+    <button id="bReset">Esvaziar (LOAD 6)</button>
+    <button id="bView">Ver de cima</button>
+    <label class="tg"><input type="checkbox" id="xray"> Ver o circuito dentro da base</label>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Medidas principais</h2>
+      <table>
+        <tr><th>Parte</th><th>Medida (cm)</th></tr>
+        <tr><td>Base (caixa de papelão)</td><td class="n">50 × 35 × 6</td></tr>
+        <tr><td>Cada vaga</td><td class="n">7 × 11</td></tr>
+        <tr><td>Corredor de circulação</td><td class="n">50 × 11</td></tr>
+        <tr><td>Pistas de entrada e saída</td><td class="n">11 × 12,5</td></tr>
+        <tr><td>Furo do sensor (vagas e pistas)</td><td class="n">1,2 × 1,2</td></tr>
+        <tr><td>Painel (totem) na frente</td><td class="n">18 × 13 × 3</td></tr>
+        <tr><td>Janela para ver a placa lógica</td><td class="n">22 × 4</td></tr>
+      </table>
+      <p class="hint">Os jumpers macho-fêmea têm cerca de 20 cm. Por isso a placa lógica fica no centro da base, a no máximo 20 cm de cada sensor.</p>
+    </section>
+    <section class="panel">
+      <h2>Materiais</h2>
+      <ul>
+        <li>Caixa de papelão grossa (base) e um pedaço extra para o painel</li>
+        <li>Cartolina preta ou cinza para o piso (asfalto)</li>
+        <li>Fita isolante branca ou caneta posca branca para as faixas</li>
+        <li>Estilete, régua de metal e cola quente</li>
+        <li>Plástico transparente (capa de pasta) para a janela</li>
+        <li>6 a 8 carrinhos de brinquedo com papel branco ou alumínio colado embaixo</li>
+        <li>Fita dupla face para prender os sensores e as placas</li>
+        <li>Etiquetas: V1 a V6, ENTRADA, SAÍDA, VAGAS LIVRES</li>
+      </ul>
+      <p class="hint">O TCRT5000 enxerga reflexo de luz infravermelha. Fundo de carrinho escuro não reflete; o papel branco embaixo garante a leitura.</p>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.5, 500);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.target.set(0, 6, 0); controls.enableDamping = true; controls.maxPolarAngle = Math.PI*0.49; controls.minDistance = 25; controls.maxDistance = 140;
+function frontView(){ camera.position.set(15, 50, 50); controls.target.set(0,3,0); }
+function topView(){ camera.position.set(0, 82, 0.1); controls.target.set(0,3,0); }
+frontView();
+function setBg(){ scene.background = new THREE.Color(css('--scene') || '#dfe5ec'); }
+setBg();
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setBg); }catch(e){}
+new MutationObserver(setBg).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8892a0, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-30, 70, 40); sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera,{left:-40,right:40,top:40,bottom:-40}); scene.add(sun);
+
+const mat = (c, o={}) => new THREE.MeshStandardMaterial(Object.assign({color:c, roughness:0.85, metalness:0}, o));
+function boxM(w,h,d,m,x,y,z){ const b = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m); b.position.set(x,y,z); b.castShadow = b.receiveShadow = true; scene.add(b); return b; }
+function label(text, w, h, opts={}){
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.round(512*h/w);
+  const g = cv.getContext('2d'); g.fillStyle = opts.bg || 'rgba(0,0,0,0)'; g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle = opts.color || '#ffffff'; g.font = `700 ${Math.round(cv.height*(opts.size||0.6))}px Barlow Condensed, Arial Narrow, Arial`; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText(text, cv.width/2, cv.height/2);
+  const t = new THREE.CanvasTexture(cv); t.anisotropy = 4;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:t, transparent:true}));
+  return m;
+}
+
+// ---- Base (caixa) ----
+const BW=50, BD=35, BH=6;
+const cardboard = mat(0xc49a6c), floorM = mat(0x3a3f47, {roughness:0.95}), white = mat(0xf2f2f2);
+const walls = [];
+walls.push(boxM(BW, BH, 0.4, cardboard, 0, BH/2, -BD/2+0.2));
+walls.push(boxM(0.4, BH, BD, cardboard, -BW/2+0.2, BH/2, 0));
+walls.push(boxM(0.4, BH, BD, cardboard, BW/2-0.2, BH/2, 0));
+// frente com janela
+const fz = BD/2-0.2;
+walls.push(boxM(BW, 1.0, 0.4, cardboard, 0, 0.5, fz));
+walls.push(boxM(BW, 1.0, 0.4, cardboard, 0, BH-0.5, fz));
+walls.push(boxM((BW-22)/2, 4, 0.4, cardboard, -(22/2+(BW-22)/4), 3, fz));
+walls.push(boxM((BW-22)/2, 4, 0.4, cardboard, (22/2+(BW-22)/4), 3, fz));
+const windowM = new THREE.MeshStandardMaterial({color:0xbfe3ff, transparent:true, opacity:0.25, roughness:0.1});
+const win = boxM(22, 4, 0.1, windowM, 0, 3, fz+0.15); win.castShadow=false;
+boxM(BW, 0.2, BD, cardboard, 0, 0.1, 0); // fundo
+const floor = boxM(BW, 0.3, BD, floorM, 0, BH+0.15, 0);
+const FY = BH+0.31;
+
+// faixas
+function stripe(w,d,x,z,c=0xf5f5f5){ const s = new THREE.Mesh(new THREE.PlaneGeometry(w,d), new THREE.MeshStandardMaterial({color:c, roughness:0.7})); s.rotation.x=-Math.PI/2; s.position.set(x,FY+0.01,z); scene.add(s); return s; }
+const VW=7, VD=11, VZ=-BD/2+0.5+VD/2; // centro z das vagas
+const vx = i => -21 + VW/2 + i*VW;
+for(let k=0;k<=6;k++) stripe(0.25, VD, -21+k*VW, VZ);
+stripe(42.25, 0.25, 0, VZ-VD/2);
+// pistas entrada / saída
+const LX = 19.5, LZ0 = 5, LZ1 = BD/2;
+[-1,1].forEach(s=>{ stripe(0.25, LZ1-LZ0, s*(LX-5.5), (LZ0+LZ1)/2); stripe(0.25, LZ1-LZ0, s*(LX+5.25), (LZ0+LZ1)/2, 0xf5c542); });
+// setas
+function arrow(x,z,dir){ const sh = new THREE.Shape(); sh.moveTo(0,1.6); sh.lineTo(1.1,0); sh.lineTo(0.4,0); sh.lineTo(0.4,-1.6); sh.lineTo(-0.4,-1.6); sh.lineTo(-0.4,0); sh.lineTo(-1.1,0); sh.closePath();
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({color:0xf5f5f5})); m.rotation.x=-Math.PI/2; m.rotation.z = dir; m.position.set(x,FY+0.02,z); scene.add(m); }
+arrow(-LX, 15, 0); arrow(LX, 7.5, Math.PI);
+// rótulos no piso
+for(let i=0;i<6;i++){ const l = label('V'+(i+1), 4, 2); l.rotation.x=-Math.PI/2; l.position.set(vx(i), FY+0.02, VZ-3.6); scene.add(l); }
+[['ENTRADA',-LX],['SAÍDA',LX]].forEach(([t,x])=>{ const l = label(t, 8, 2, {color:'#f5c542'}); l.rotation.x=-Math.PI/2; l.position.set(x, FY+0.02, 16.3); scene.add(l); });
+
+// sensores (furos no piso)
+const sensorMats = [];
+function sensor(x,z){ const m = new THREE.MeshStandardMaterial({color:0x1e5fb3, emissive:0x000000}); const s = new THREE.Mesh(new THREE.BoxGeometry(1.2,0.12,1.2), m); s.position.set(x, FY+0.02, z); scene.add(s); sensorMats.push(m); return m; }
+const vagaSensor = []; for(let i=0;i<6;i++) vagaSensor.push(sensor(vx(i), VZ));
+const SEz = 11, sensIn = sensor(-LX, SEz), sensOut = sensor(LX, SEz);
+
+// ---- Painel (totem) com a placa do visor atrás ----
+const PW=18, PH=13, PZ=13;
+boxM(PW+1, PH, 3, mat(0xd8d2c6), 0, FY+PH/2, PZ);
+const pcv = document.createElement('canvas'); pcv.width = 720; pcv.height = 520;
+const ptex = new THREE.CanvasTexture(pcv); ptex.anisotropy = 4;
+const face = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({map:ptex}));
+face.position.set(0, FY+PH/2, PZ+1.52); scene.add(face);
+boxM(2, 0.4, 3.5, mat(0x8a8f99), 0, FY+0.2, PZ);
+
+// ---- Circuito dentro da base ----
+const inside = new THREE.Group(); scene.add(inside);
+function ib(w,h,d,c,x,y,z){ const b = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(c)); b.position.set(x,y,z); inside.add(b); return b; }
+ib(18, 0.9, 5.6, 0xf3f3ef, 0, 1.2, 4); // placa 760 (lógica), perto da janela
+for(let i=0;i<7;i++) ib(1.9, 0.5, 0.8, 0x111111, -7.5 + i*2.4, 1.9, 4);
+ib(16.5, 0.9, 5.5, 0xf3f3ef, 0, FY+PH/2, PZ-1.7).rotation.x = Math.PI/2; // placa 830 atrás do painel (fora da base)
+const wireCols = [0xff7a00,0xff7a00,0xff7a00,0xff7a00,0xff7a00,0xff7a00,0xf5c542,0xf5c542];
+const sensPos = [...Array(6)].map((_,i)=>[vx(i),VZ]).concat([[-LX,SEz],[LX,SEz]]);
+sensPos.forEach(([x,z],i)=>{
+  const pts = [new THREE.Vector3(x,FY-0.4,z), new THREE.Vector3(x,3.5,z), new THREE.Vector3(-6+i*1.7,2.2,4-2.2)];
+  const curve = new THREE.CatmullRomCurve3(pts); const g = new THREE.TubeGeometry(curve, 20, 0.12, 6, false);
+  inside.add(new THREE.Mesh(g, mat(wireCols[i])));
+});
+// fios até o painel
+for(let k=0;k<5;k++){ const pts=[new THREE.Vector3(-4+k*2,1.6,6.5), new THREE.Vector3(-4+k*2,4,11), new THREE.Vector3(-4+k*2,FY+1,PZ-1.6)];
+  inside.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,0.1,6,false), mat([0x8a2be2,0x1a9a3a,0xd42020,0x1f4fbf,0xd42020][k]))); }
+inside.visible = false;
+
+const xray = document.getElementById('xray');
+xray.addEventListener('change', ()=>{
+  const on = xray.checked; inside.visible = on;
+  floor.material.transparent = on; floor.material.opacity = on ? 0.18 : 1;
+  walls.forEach(w=>{ w.material = on ? mat(0xc49a6c,{transparent:true,opacity:0.25}) : cardboard; });
+  floor.material.needsUpdate = true;
+});
+
+// ---- Estado lógico ----
+let Q = 6; const occ = [false,false,false,false,false,false];
+const L = () => occ.every(Boolean); const D = () => occ.some(o=>!o);
+function drawPanel(){
+  const g = pcv.getContext('2d'); const W = pcv.width, H = pcv.height;
+  g.fillStyle = '#1d2128'; g.fillRect(0,0,W,H);
+  g.fillStyle = '#e8edf3'; g.font = '700 46px Barlow Condensed, Arial Narrow, Arial'; g.textAlign = 'center'; g.fillText('VAGAS LIVRES', W/2, 58);
+  // display
+  g.fillStyle = '#0b0b0b'; g.fillRect(W/2-90, 80, 180, 240);
+  g.fillStyle = '#ff3b2f'; g.font = '700 230px JetBrains Mono, Consolas, monospace'; g.textBaseline='middle'; g.fillText(String(Q), W/2, 205); g.textBaseline='alphabetic';
+  // LEDs das vagas
+  for(let i=0;i<6;i++){ const x = 80 + i*112, y = 380;
+    g.fillStyle = occ[i] ? '#ff3b2f' : '#3b1612'; g.beginPath(); g.arc(x-18, y, 14, 0, 7); g.fill();
+    g.fillStyle = occ[i] ? '#123b1c' : '#3cff6a'; g.beginPath(); g.arc(x+18, y, 14, 0, 7); g.fill();
+    g.fillStyle = '#c9d1dc'; g.font = '600 30px Inter, Arial'; g.fillText('V'+(i+1), x, y+50); }
+  const lot = L();
+  g.font = '700 40px Barlow Condensed, Arial Narrow, Arial';
+  g.fillStyle = lot ? '#3b1612' : '#3cff6a'; g.beginPath(); g.arc(150, 480, 16, 0, 7); g.fill(); g.fillStyle = '#e8edf3'; g.textAlign='left'; g.fillText('HÁ VAGA', 178, 494);
+  g.fillStyle = lot ? '#ff3b2f' : '#3b1612'; g.beginPath(); g.arc(430, 480, 16, 0, 7); g.fill(); g.fillStyle = '#e8edf3'; g.fillText('LOTADO', 458, 494); g.textAlign='center';
+  ptex.needsUpdate = true;
+  document.getElementById('chipN').textContent = Q + (Q===1?' vaga livre':' vagas livres');
+  const cs = document.getElementById('chipS'); cs.textContent = lot ? 'Lotado' : 'Há vaga'; cs.className = 'chip ' + (lot?'bad':'ok');
+  vagaSensor.forEach((m,i)=>{ m.color.set(occ[i]?0xd42020:0x1e5fb3); });
+}
+drawPanel();
+const msg = t => document.getElementById('msg').textContent = t;
+
+// ---- Carros ----
+const carColors = [0xe63946,0x2a9d8f,0xf4a261,0x457b9d,0x8e44ad,0xf1c40f,0x16a085,0xd35400];
+let carN = 0; const parked = [null,null,null,null,null,null];
+function makeCar(){
+  const g = new THREE.Group(); const c = carColors[carN++ % carColors.length];
+  const body = new THREE.Mesh(new THREE.BoxGeometry(3.2,1.3,6.2), mat(c,{roughness:0.5})); body.position.y = 1.05; body.castShadow = true; g.add(body);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.8,1.0,3.0), mat(0xdfe8f0,{roughness:0.2})); cab.position.set(0,2.15,-0.3); cab.castShadow = true; g.add(cab);
+  [[-1.5,2],[1.5,2],[-1.5,-2],[1.5,-2]].forEach(([x,z])=>{ const w = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.5,14), mat(0x111111)); w.rotation.z=Math.PI/2; w.position.set(x,0.6,z); g.add(w); });
+  const pad = new THREE.Mesh(new THREE.PlaneGeometry(2.4,4.5), mat(0xffffff)); pad.rotation.x = Math.PI/2; pad.position.y = 0.38; g.add(pad);
+  g.position.y = FY; scene.add(g); return g;
+}
+let busy = false; const btns = ['bIn','bOut','bReset'].map(id=>document.getElementById(id));
+function setBusy(b){ busy=b; btns.forEach(x=>x.disabled=b); }
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drive(car, pts, onStep, done){
+  let seg = 0; const speed = reduce ? 200 : 22; let last = performance.now();
+  car.position.x = pts[0][0]; car.position.z = pts[0][1];
+  function step(now){
+    const dt = Math.min(0.05,(now-last)/1000); last = now; let move = speed*dt;
+    while(move>0 && seg < pts.length-1){
+      const [tx,tz] = pts[seg+1]; const dx = tx-car.position.x, dz = tz-car.position.z; const dist = Math.hypot(dx,dz);
+      if(dist < 1e-3){ seg++; continue; }
+      car.rotation.y = Math.atan2(dx,dz);
+      const m = Math.min(move, dist); car.position.x += dx/dist*m; car.position.z += dz/dist*m; move -= m;
+      if(m===dist) seg++;
+    }
+    onStep && onStep(car.position);
+    if(seg >= pts.length-1){ done && done(); return; }
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function sensorGlow(m, on){ m.emissive.set(on?0x2266ff:0x000000); }
+
+document.getElementById('bIn').onclick = ()=>{
+  if(busy) return;
+  const i = occ.indexOf(false);
+  if(L()){ msg('Estacionamento LOTADO: L = 1 trava o DOWN. Mesmo passando pela entrada, o display continua em 0.'); return; }
+  setBusy(true); const car = makeCar(); let counted = false, over = false;
+  msg('Carro passando pelo sensor de ENTRADA (SE vai a 0)...');
+  drive(car, [[-LX,BD/2+4],[-LX,0],[vx(i),0],[vx(i),VZ]], p=>{
+    const on = Math.abs(p.z-SEz) < 3.4 && Math.abs(p.x+LX) < 1; sensorGlow(sensIn, on);
+    if(on) over = true;
+    if(over && !on && !counted){ counted = true; if(Q>0) Q--; drawPanel(); msg('SE voltou a 1: borda de subida no DOWN, contador desceu para '+Q+'.'); }
+  }, ()=>{ occ[i] = true; parked[i] = car; drawPanel(); msg('Carro estacionou na vaga '+(i+1)+': LED vermelho aceso.'+(L()?' Todas ocupadas: LOTADO.':'')); setBusy(false); });
+};
+document.getElementById('bOut').onclick = ()=>{
+  if(busy) return;
+  let i = -1; for(let k=5;k>=0;k--) if(occ[k]){ i=k; break; }
+  if(i<0){ msg('Não há carros estacionados. Com o contador em 6, QC·QB = 1 trava o UP.'); return; }
+  setBusy(true); const car = parked[i]; occ[i] = false; parked[i] = null; drawPanel(); let counted=false, over=false;
+  msg('Carro saiu da vaga '+(i+1)+': LED verde aceso. Indo para a SAÍDA...');
+  drive(car, [[vx(i),VZ],[vx(i),0],[LX,0],[LX,BD/2+4]], p=>{
+    const on = Math.abs(p.z-SEz) < 3.4 && Math.abs(p.x-LX) < 1; sensorGlow(sensOut, on);
+    if(on) over = true;
+    if(over && !on && !counted){ counted = true; if(Q<6) Q++; drawPanel(); msg('SS voltou a 1: borda de subida no UP, contador subiu para '+Q+'.'); }
+  }, ()=>{ scene.remove(car); setBusy(false); });
+};
+document.getElementById('bReset').onclick = ()=>{
+  if(busy) return; parked.forEach((c,i)=>{ if(c) scene.remove(c); parked[i]=null; occ[i]=false; }); Q = 6; drawPanel(); msg('LOAD\' acionado: contador carregado com 6 (0110). Estacionamento vazio.');
+};
+let top = false; document.getElementById('bView').onclick = e=>{ top = !top; top ? topView() : frontView(); e.target.textContent = top ? 'Ver de frente' : 'Ver de cima'; };
+
+// exemplo inicial: 2 carros estacionados
+[0,3].forEach(i=>{ const c = makeCar(); c.position.set(vx(i),FY,VZ); occ[i]=true; parked[i]=c; Q--; });
+drawPanel(); msg('Exemplo: vagas 1 e 4 ocupadas, display em 4. Use os botões abaixo.');
+
+function resize(){ const r = canvas.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width/Math.max(1,r.height); camera.updateProjectionMatrix(); }
+window.addEventListener('resize', resize); resize();
+(function loop(){ controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+window.__parkvaga = {topView, frontView, xray: v=>{ xray.checked=v; xray.dispatchEvent(new Event('change')); }};
+})();
+</script>
