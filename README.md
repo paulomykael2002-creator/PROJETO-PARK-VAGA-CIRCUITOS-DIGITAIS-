@@ -57,8 +57,8 @@ Cada acompanhamento com o professor tem uma pasta própria, com todos os arquivo
 ### [Maquete](maquete/)
 | Arquivo | Conteúdo |
 |---|---|
-| [Guia de montagem da maquete - ParkVaga.pdf](maquete/Guia%20de%20montagem%20da%20maquete%20-%20ParkVaga.pdf) | Materiais de papelão, medidas, vista de cima e passo a passo da maquete |
-| [index.html](maquete/index.html) | Maquete 3D interativa: carros entram e saem e o painel atualiza |
+| [Guia de montagem da maquete - ParkVaga.pdf](maquete/Guia%20de%20montagem%20da%20maquete%20-%20ParkVaga.pdf) | Guia detalhado (13 páginas): lista de corte das 13 peças, plano de corte, moldes com medidas de cada recorte, tabela de furos do piso e 13 etapas de montagem com imagens 3D |
+| [index.html](maquete/index.html) | Maquete 3D interativa: carros entram e saem e o painel atualiza. Para abrir no navegador: [maquete 3D online](https://paulomykael2002-creator.github.io/PROJETO-PARK-VAGA-CIRCUITOS-DIGITAIS-/maquete/) (precisa do GitHub Pages ativado) ou baixe o arquivo e abra no navegador |
 
 ### [Simulador](simulador/)
 Simulador interativo do circuito no navegador.
