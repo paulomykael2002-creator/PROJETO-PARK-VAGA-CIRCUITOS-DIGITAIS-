@@ -31,6 +31,7 @@ Cada acompanhamento com o professor tem uma pasta própria, com todos os arquivo
 ### [Montagem do circuito](Montagem%20do%20circuito/)
 | Arquivo | Conteúdo |
 |---|---|
+| [Manual completo de montagem - ParkVaga.pdf](Montagem%20do%20circuito/Manual%20completo%20de%20montagem%20-%20ParkVaga.pdf) | **Comece por aqui.** Manual completo (32 págs): lista de peças, como ler a protoboard e as peças, placa 760 passo a passo, placa 830 passo a passo, fios entre as placas e sensores, alimentação e testes |
 | [Opções de alimentação 5 V - ParkVaga.pdf](Montagem%20do%20circuito/Op%C3%A7%C3%B5es%20de%20alimenta%C3%A7%C3%A3o%205%20V%20-%20ParkVaga.pdf) | 10 formas de alimentar o circuito com 5 V, com diagrama de ligação, custo e cuidados de cada uma |
 | [Montagem passo a passo - protoboard 760 furos (fios numerados).pdf](Montagem%20do%20circuito/Montagem%20passo%20a%20passo%20-%20protoboard%20760%20furos%20%28fios%20numerados%29.pdf) | Passo a passo da placa lógica, com cada fio numerado nas duas pontas |
 | [Ligação entre as placas - horizontal (10 etapas).pdf](Montagem%20do%20circuito/Liga%C3%A7%C3%A3o%20entre%20as%20placas%20-%20horizontal%20%2810%20etapas%29.pdf) | Ligação entre a placa 760 (lógica) e a 830 (visor) em 10 etapas |
